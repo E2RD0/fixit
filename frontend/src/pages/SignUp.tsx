@@ -83,7 +83,7 @@ const SignUp: React.FC = () => {
           margin="normal"
           required
           fullWidth
-          label="Nombre de usuario"
+          label="Nombre completo"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}

@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
     <Box sx={{ flexGrow: 1, p: 3 }}>
 
       <Typography variant="h4" gutterBottom>
-        Incidentes
+        Incidencias
       </Typography>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
@@ -252,6 +252,13 @@ const Dashboard: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
+            {filteredIncidents.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} align="center">
+                  No se encontraron incidencias
+                </TableCell>
+              </TableRow>
+            )}
             {filteredIncidents.map((incident) => (
               <TableRow key={incident.id}>
                 <TableCell>{incident.name}</TableCell>
