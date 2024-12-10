@@ -13,8 +13,15 @@ export default class UserController {
       return next(new httpClient.errors.BadRequest({ msg: "User id is required" }));
     }
     try {
-      const videoOnDB = (await User.ReadByFilter({ _id: new Types.ObjectId(id) })) as IUser;
-      res.json(videoOnDB);
+      const userOnDb = (await User.ReadByFilter({ _id: new Types.ObjectId(id) })) as IUser;
+      if (!userOnDb) {
+        return next(new httpClient.errors.NotFound({ msg: "User not found" }));
+      }
+      res.json({
+        id: userOnDb.id,
+        name: userOnDb.name,
+        email: userOnDb.email,
+      });
     } catch (e) {
       next(e);
     }

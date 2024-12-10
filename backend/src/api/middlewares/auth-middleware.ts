@@ -1,7 +1,7 @@
 import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import constants from "../../utils/constants";
-
+import httpClient from "http-response-client";
 
 export interface CustomRequest extends Request {
   token: string | JwtPayload;
@@ -20,6 +20,6 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 
     next();
   } catch (err) {
-    res.status(401).send("Unauthorized, invalid token");
+    next(new httpClient.errors.Unauthorized({ msg: "Unauthorized, invalid token" }));
   }
 };

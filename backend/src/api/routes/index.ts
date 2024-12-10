@@ -11,7 +11,7 @@ const router = express.Router({
 });
 
 router.use("/user", userRoutes);
-router.use("incidence", incidenceRoutes);
+router.use("/incidence", incidenceRoutes);
 
 
 export default router;
