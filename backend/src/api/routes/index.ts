@@ -1,4 +1,5 @@
 import userRoutes from "./user-routes";
+import incidenceRoutes from "./incidence-routes";
 import express from "express";
 
 /**
@@ -10,6 +11,7 @@ const router = express.Router({
 });
 
 router.use("/user", userRoutes);
+router.use("incidence", incidenceRoutes);
 
 
 export default router;

@@ -7,7 +7,6 @@ export interface ICreateIncidenceBody extends Omit<IIncidence, "id | reportedBy 
 }
 
 export interface IUpdateIncidenceBody extends Omit<IIncidence, "id, reportedBy | assignedTo"> {
-  id: Types.ObjectId;
   reportedUser: string;
   assignedUser?: string;
 }

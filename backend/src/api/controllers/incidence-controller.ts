@@ -1,13 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import Incidence from "../../structures/classes/model-classes/incidence-class";
 import { Types } from "mongoose";
-import IIncidence from "../../structures/interfaces/model-interfaces/incidence-model-interface";
-import { ICreateIncidenceBody, IUpdateIncidenceBody } from "../../structures/interfaces/controllers-interfaces/incidence-controller-interface";
+import {
+  ICreateIncidenceBody,
+  IUpdateIncidenceBody,
+} from "../../structures/interfaces/controllers-interfaces/incidence-controller-interface";
 import User from "../../structures/classes/model-classes/user-class";
 import IUser from "../../structures/interfaces/model-interfaces/user-model-interface";
 
 export default class IncidenceController {
-  public static async getIncidences(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const incidences = await Incidence.ReadByFilter({}, false);
       res.json(incidences);
@@ -70,9 +72,13 @@ export default class IncidenceController {
     }
   }
 
-  public static async updateIncidence(req: Request<{}, {}, IUpdateIncidenceBody>, res: Response, next: NextFunction): Promise<void> {
-    const { id, name, description, priority, status, date, reportedUser, assignedUser } = req.body;
-
+  public static async updateIncidence(
+    req: Request<{ id: string }, {}, IUpdateIncidenceBody>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const { id } = req.params;
+    const { name, description, priority, status, date, reportedUser, assignedUser } = req.body;
 
     if (!id || !name || !description || !priority || !status || !date || !reportedUser) {
       return next({ msg: "Id, Name, description, priority, status, date and reportedUser are required" });
@@ -95,7 +101,7 @@ export default class IncidenceController {
 
     try {
       const incidence = new Incidence({
-        id: id,
+        id: new Types.ObjectId(id),
         name,
         description,
         priority,
