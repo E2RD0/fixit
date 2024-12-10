@@ -24,6 +24,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import DeleteDialog from "../components/DeleteDialog";
 import constants from "../utils/constants";
+import Navmenu from "../components/Navmenu";
 
 interface User {
   id: string;
@@ -221,7 +222,10 @@ const Dashboard: React.FC = () => {
   };
 
   return (
+    <>
+    <Navmenu />
     <Box sx={{ flexGrow: 1, p: 3 }}>
+
       <Typography variant="h4" gutterBottom>
         Incidentes
       </Typography>
@@ -356,6 +360,7 @@ const Dashboard: React.FC = () => {
         onConfirm={handleDelete}
       />
     </Box>
+    </>
   );
 };
 

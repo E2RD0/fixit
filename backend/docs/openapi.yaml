@@ -1,0 +1,292 @@
+openapi: 3.0.0
+info:
+  title: Fixit API
+  version: 1.0.0
+  description: API para gestionar incidencias y usuarios.
+
+servers:
+  - url: http://localhost:4000
+    description: Servidor de desarrollo
+
+paths:
+  /incidence:
+    get:
+      summary: Obtener todas las incidencias
+      operationId: getAllIncidences
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de incidencias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Incidence'
+    post:
+      summary: Crear una nueva incidencia
+      operationId: createIncidence
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Datos para crear una incidencia
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIncidenceBody'
+      responses:
+        '201':
+          description: Incidencia creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incidence'
+
+  /incidence/{id}:
+    get:
+      summary: Obtener una incidencia específica
+      operationId: getIncidence
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la incidencia
+      responses:
+        '200':
+          description: Detalles de la incidencia
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incidence'
+    put:
+      summary: Actualizar una incidencia
+      operationId: updateIncidence
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la incidencia
+      requestBody:
+        description: Datos para actualizar la incidencia
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIncidenceBody'
+      responses:
+        '200':
+          description: Incidencia actualizada
+    delete:
+      summary: Eliminar una incidencia
+      operationId: deleteIncidence
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la incidencia
+      responses:
+        '200':
+          description: Incidencia eliminada
+
+  /user:
+    get:
+      summary: Obtener todos los usuarios
+      operationId: getAllUsers
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Crear un nuevo usuario
+      operationId: createUser
+      requestBody:
+        description: Datos del nuevo usuario
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserBody'
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /user/{id}:
+    get:
+      summary: Obtener un usuario específico
+      operationId: getUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      responses:
+        '200':
+          description: Información del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Actualizar un usuario
+      operationId: updateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      requestBody:
+        description: Datos del usuario para actualizar
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserBody'
+      responses:
+        '200':
+          description: Usuario actualizado
+
+  /user/login:
+    post:
+      summary: Iniciar sesión de usuario
+      operationId: loginUser
+      requestBody:
+        description: Credenciales del usuario
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: Token JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "jwt.token.here"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Incidence:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        status:
+          type: string
+          enum: [open, in_progress, closed]
+        reportedBy:
+          type: string
+        assignedTo:
+          type: string
+        date:
+          type: string
+          format: date-time
+    CreateIncidenceBody:
+      type: object
+      required: [name, description, priority, status, reportedBy]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        status:
+          type: string
+          enum: [open, in_progress, closed]
+        reportedBy:
+          type: string
+        assignedTo:
+          type: string
+    UpdateIncidenceBody:
+      allOf:
+        - $ref: '#/components/schemas/CreateIncidenceBody'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+
+    CreateUserBody:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    UpdateUserBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    LoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
