@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  Toolbar,
   Typography,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Button,
   Box,
   TextField,
@@ -15,22 +9,23 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  MenuItem,
   Table,
   TableHead,
   TableBody,
   TableRow,
   TableCell,
   Paper,
+  Chip,
 } from "@mui/material";
-import {
-  Dashboard as DashboardIcon,
-  AccountCircle as ProfileIcon,
-  ExitToApp as SignOutIcon,
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-} from "@mui/icons-material";
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { format } from "date-fns";
+import DeleteDialog from "../components/DeleteDialog";
+
+interface User {
+  id: string;
+  name: string;
+}
 
 interface Incident {
   id: number;
@@ -48,6 +43,18 @@ const Dashboard: React.FC = () => {
   const [filteredIncidents, setFilteredIncidents] = useState<Incident[]>([]);
   const [search, setSearch] = useState<string>("");
 
+  // Users for "Assigned To" dropdown
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fakeUsers: User[] = [
+      { id: "1", name: "John Doe" },
+      { id: "2", name: "Jane Smith" },
+      { id: "3", name: "Alice Brown" },
+    ];
+    setUsers(fakeUsers);
+  }, []);
+
   // State for Modals
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [editModal, setEditModal] = useState<boolean>(false);
@@ -60,7 +67,7 @@ const Dashboard: React.FC = () => {
     description: "",
     priority: "low",
     status: "open",
-    reportedBy: "",
+    reportedBy: "John Doe", // Default
     assignedTo: "",
   });
 
@@ -74,8 +81,8 @@ const Dashboard: React.FC = () => {
         priority: "high",
         status: "open",
         date: "2024-12-10T13:22:44.397Z",
-        reportedBy: "User 123",
-        assignedTo: "Technician 456",
+        reportedBy: "John Doe",
+        assignedTo: "Jane Smith",
       },
       {
         id: 2,
@@ -84,7 +91,7 @@ const Dashboard: React.FC = () => {
         priority: "critical",
         status: "inprogress",
         date: "2024-12-09T09:45:00.000Z",
-        reportedBy: "User 124",
+        reportedBy: "Alice Brown",
       },
     ];
     setIncidents(fakeData);
@@ -93,9 +100,7 @@ const Dashboard: React.FC = () => {
 
   // Search functionality
   useEffect(() => {
-    const filtered = incidents.filter((incident) =>
-      incident.name.toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered = incidents.filter((incident) => incident.name.toLowerCase().includes(search.toLowerCase()));
     setFilteredIncidents(filtered);
   }, [search, incidents]);
 
@@ -103,9 +108,7 @@ const Dashboard: React.FC = () => {
   const handleSubmit = () => {
     if (editModal && selectedIncident) {
       // Edit existing incident
-      const updatedIncidents = incidents.map((inc) =>
-        inc.id === selectedIncident.id ? { ...selectedIncident, ...formData } : inc
-      );
+      const updatedIncidents = incidents.map((inc) => (inc.id === selectedIncident.id ? { ...selectedIncident, ...formData } : inc));
       setIncidents(updatedIncidents);
     } else {
       // Create new incident
@@ -119,14 +122,19 @@ const Dashboard: React.FC = () => {
     handleCloseModals();
   };
 
+  // Function to handle delete confirmation
   const handleDelete = () => {
     if (selectedIncident) {
-      const updatedIncidents = incidents.filter(
-        (inc) => inc.id !== selectedIncident.id
-      );
+      const updatedIncidents = incidents.filter((inc) => inc.id !== selectedIncident.id);
       setIncidents(updatedIncidents);
     }
-    setDeleteDialog(false);
+    setDeleteDialog(false); // Close dialog
+  };
+
+  // Function to open the delete dialog
+  const openDeleteDialog = (incident: Incident) => {
+    setSelectedIncident(incident);
+    setDeleteDialog(true);
   };
 
   const handleOpenEdit = (incident: Incident) => {
@@ -152,161 +160,160 @@ const Dashboard: React.FC = () => {
       description: "",
       priority: "low",
       status: "open",
-      reportedBy: "",
+      reportedBy: "John Doe",
       assignedTo: "",
     });
   };
 
+  // Utility: Get Chip color based on value
+  const getChipColor = (value: string) => {
+    switch (value) {
+      case "low":
+      case "open":
+        return "success";
+      case "medium":
+      case "inprogress":
+        return "warning";
+      case "high":
+        return "error";
+      case "critical":
+      case "resolved":
+      case "closed":
+        return "default";
+      default:
+        return "default";
+    }
+  };
+
   return (
-    <Box sx={{ display: "flex" }}>
-      {/* Sidebar */}
-      <Drawer variant="permanent">
-        <Toolbar />
-        <List>
-          <ListItem>
-            <img
-              src="/logo.png" // Replace with your logo path
-              alt="Fixit App"
-              width="30"
-              style={{ marginRight: 10 }}
-            />
-            <Typography variant="h6">Fixit App</Typography>
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <DashboardIcon />
-            </ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <ProfileIcon />
-            </ListItemIcon>
-            <ListItemText primary="Profile" />
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <SignOutIcon />
-            </ListItemIcon>
-            <ListItemText primary="Sign Out" />
-          </ListItem>
-        </List>
-      </Drawer>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Incidentes
+      </Typography>
 
-      {/* Main Content */}
-      <Box sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Incidentes
-        </Typography>
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-          <TextField
-            label="Buscar por nombre"
-            variant="outlined"
-            size="small"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenModal(true)}
-          >
-            Crear Incidente
-          </Button>
-        </Box>
-
-        <Paper>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Descripción</TableCell>
-                <TableCell>Prioridad</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Fecha</TableCell>
-                <TableCell>Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredIncidents.map((incident) => (
-                <TableRow key={incident.id}>
-                  <TableCell>{incident.name}</TableCell>
-                  <TableCell>{incident.description}</TableCell>
-                  <TableCell>{incident.priority}</TableCell>
-                  <TableCell>{incident.status}</TableCell>
-                  <TableCell>{format(new Date(incident.date), "yyyy-MM-dd")}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleOpenEdit(incident)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => {
-                        setSelectedIncident(incident);
-                        setDeleteDialog(true);
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Paper>
-
-        {/* Create/Edit Modal */}
-        <Dialog open={openModal || editModal} onClose={handleCloseModals}>
-          <DialogTitle>
-            {editModal ? "Editar Incidente" : "Crear Incidente"}
-          </DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              label="Nombre"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Descripción"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              margin="normal"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseModals}>Cancelar</Button>
-            <Button onClick={handleSubmit} color="primary">
-              Guardar
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
-          <DialogTitle>Confirmar eliminación</DialogTitle>
-          <DialogContent>
-            ¿Estás seguro de que deseas eliminar este incidente?
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleDelete} color="error">
-              Eliminar
-            </Button>
-          </DialogActions>
-        </Dialog>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <TextField label="Buscar por nombre" variant="outlined" size="small" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setOpenModal(true)}>
+          Crear Incidente
+        </Button>
       </Box>
+
+      <Paper>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Descripción</TableCell>
+              <TableCell>Prioridad</TableCell>
+              <TableCell>Estado</TableCell>
+              <TableCell>Reportado Por</TableCell>
+              <TableCell>Asignado A</TableCell>
+              <TableCell>Fecha</TableCell>
+              <TableCell>Acciones</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredIncidents.map((incident) => (
+              <TableRow key={incident.id}>
+                <TableCell>{incident.name}</TableCell>
+                <TableCell>{incident.description}</TableCell>
+                <TableCell>
+                  <Chip label={incident.priority} color={getChipColor(incident.priority)} />
+                </TableCell>
+                <TableCell>
+                  <Chip label={incident.status} color={getChipColor(incident.status)} />
+                </TableCell>
+                <TableCell>{incident.reportedBy}</TableCell>
+                <TableCell>{incident.assignedTo || "N/A"}</TableCell>
+                <TableCell>{format(new Date(incident.date), "yyyy-MM-dd")}</TableCell>
+                <TableCell>
+                  <IconButton color="primary" onClick={() => handleOpenEdit(incident)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => openDeleteDialog(incident)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Paper>
+
+      {/* Create/Edit Modal */}
+      <Dialog open={openModal || editModal} onClose={handleCloseModals}>
+        <DialogTitle>{editModal ? "Editar Incidente" : "Crear Incidente"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Nombre"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Descripción"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            margin="normal"
+          />
+          <TextField
+            select
+            fullWidth
+            label="Prioridad"
+            value={formData.priority}
+            onChange={(e) => setFormData({ ...formData, priority: e.target.value as Incident["priority"] })}
+            margin="normal"
+          >
+            <MenuItem value="low">Baja</MenuItem>
+            <MenuItem value="medium">Media</MenuItem>
+            <MenuItem value="high">Alta</MenuItem>
+            <MenuItem value="critical">Crítica</MenuItem>
+          </TextField>
+          <TextField
+            select
+            fullWidth
+            label="Estado"
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as Incident["status"] })}
+            margin="normal"
+          >
+            <MenuItem value="open">Abierto</MenuItem>
+            <MenuItem value="inprogress">En progreso</MenuItem>
+            <MenuItem value="resolved">Resuelto</MenuItem>
+            <MenuItem value="closed">Cerrado</MenuItem>
+          </TextField>
+          <TextField
+            select
+            fullWidth
+            label="Asignado A"
+            value={formData.assignedTo}
+            onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+            margin="normal"
+          >
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.name}>
+                {user.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseModals}>Cancelar</Button>
+          <Button onClick={handleSubmit} color="primary">
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <DeleteDialog
+        open={deleteDialog}
+        title="Eliminar Incidente"
+        message={`¿Estás seguro de que deseas eliminar el incidente "${selectedIncident?.name}"?`}
+        onClose={() => setDeleteDialog(false)}
+        onConfirm={handleDelete}
+      />
     </Box>
   );
 };
