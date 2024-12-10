@@ -10,5 +10,6 @@ router.get("/", verifyToken, IncidenceController.getAll);
 router.get("/:id", verifyToken, IncidenceController.getIncidence);
 router.post("/", verifyToken, IncidenceController.createIncidence);
 router.put("/:id", verifyToken, IncidenceController.updateIncidence);
+router.delete("/:id", verifyToken, IncidenceController.deleteIncidence);
 
 export default router;
