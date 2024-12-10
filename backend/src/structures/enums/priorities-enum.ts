@@ -1,6 +1,6 @@
 export enum IncidencePriorities {
-  LOW = 'Low',
-  MEDIUM = 'Medium',
-  HIGH = 'High',
-  CRITICAL = 'Critical'
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
 }

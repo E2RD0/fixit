@@ -1,6 +1,6 @@
 export enum IncidenceStatus {
-  Open = 'Open',
-  InProgress = 'InProgress',
-  Resolved = 'Resolved',
-  Closed = 'Closed'
+  Open = 'open',
+  InProgress = 'inprogress',
+  Resolved = 'resolved',
+  Closed = 'closed'
 }

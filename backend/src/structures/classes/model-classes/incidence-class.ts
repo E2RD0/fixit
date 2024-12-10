@@ -12,7 +12,7 @@ export default class Incidence {
   public readonly description: string;
   public readonly priority: IncidencePriorities;
   public readonly status: IncidenceStatus;
-  public readonly date: Date;
+  public readonly date?: Date;
   private _reportedBy: IUser;
   private _assignedTo?: IUser;
 
@@ -77,7 +77,7 @@ export default class Incidence {
     return oneElement ? incidences[0] : incidences;
   }
 
-  public static async Delete(id: string): Promise<IIncidence | null> {
+  public static async Delete(id: string | Types.ObjectId): Promise<IIncidence | null> {
     const deletedIncidence = await models.incidence.findByIdAndDelete(id);
     return deletedIncidence ?? null;
   }

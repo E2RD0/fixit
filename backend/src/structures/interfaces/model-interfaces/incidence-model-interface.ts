@@ -9,7 +9,7 @@ export default interface IIncidence {
   description: string;
   priority: IncidencePriorities;
   status: IncidenceStatus;
-  date: Date;
+  date?: Date;
   reportedBy: IUser;
   assignedTo?: IUser;
 }

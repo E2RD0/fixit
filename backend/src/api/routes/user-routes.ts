@@ -1,21 +1,20 @@
 import express, { NextFunction, Request, Response } from "express";
 import UserController from "../controllers/user-controller";
+import { verifyToken } from "../middlewares/auth-middleware";
 
 const router = express.Router({
   strict: true,
 });
 
 
-router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
-  UserController.getUser(req, res, next);
-});
+router.get("/:id", UserController.getUser);
 
-router.post("/", (req: Request, res: Response, next: NextFunction) => {
-  UserController.createUser(req, res, next);
-});
+router.post("/", UserController.createUser);
 
-router.post("/login", (req: Request, res: Response, next: NextFunction) => {
-  UserController.loginUser(req, res, next);
-});
+router.post("/login", UserController.loginUser);
+
+router.get("/", verifyToken, UserController.getAll);
+
+router.put("/:id", verifyToken, UserController.updateUser);
 
 export default router;

@@ -6,6 +6,20 @@ import { Types } from "mongoose";
 import UserUtils from "../../utils/user-utils";
 
 export default class UserController {
+  public static async getAll(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = (await User.ReadByFilter({}, false)) as IUser[];
+      const usersResponse = users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      }));
+      res.json(usersResponse);
+    } catch (e) {
+      next(e);
+    }
+  }
+
   public static async getUser(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
 
@@ -45,6 +59,40 @@ export default class UserController {
         id: createdUser.id,
         name: createdUser.name,
         email: createdUser.email,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public static async updateUser(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
+    const { name, email, password } = req.body;
+
+    if (!id) {
+      return next(new httpClient.errors.BadRequest({ msg: "User id is required" }));
+    }
+
+    try {
+      const userOnDb = (await User.ReadByFilter({ _id: new Types.ObjectId(id) })) as IUser;
+      if (!userOnDb) {
+        return next(new httpClient.errors.NotFound({ msg: "User not found" }));
+      }
+
+      if (email && email !== userOnDb.email && (await User.ReadByFilter({ email }))) {
+        return next(new httpClient.errors.Conflict({ msg: "Email already exists" }));
+      }
+
+      const hashedPassword = password ? await UserUtils.hashPassword(password) : userOnDb.password;
+      const user = new User({ name, email, password: hashedPassword });
+      const updatedUser = await user.Update();
+      if (!updatedUser) {
+        return next(new httpClient.errors.InternalServerError({ msg: "Error updating user" }));
+      }
+      res.json({
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
       });
     } catch (e) {
       next(e);
